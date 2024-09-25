@@ -1,0 +1,21 @@
+<!-- templates/stats.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav>
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="{{ url_for('stats') }}">Statistics</a>
+    </nav>
+
+    <h1>Statistics</h1>
+    <p>some statistics for the user</p>
+</body>
+</html>

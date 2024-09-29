@@ -16,6 +16,7 @@
         <a href="{{ url_for('stats') }}">Statistics</a>
     </nav>
 
+
     <h1>Sentiment Analysis of Reviews</h1>
     <p>Write anything you want, and we will tell you how you feel!</p>
     <form action="/predict" method="post">
@@ -23,13 +24,45 @@
         <textarea name="Review" rows="4" cols="50"></textarea><br><br>
         <input type="submit" value="Submit">
     </form>
-    
+   
     {% if prediction_text %}
         <h2>{{ prediction_text }}</h2>
         <div class="quote-section">
             <h3>Quote:</h3>
-            <h2>{{ quote_text }}</h2>
+            <h2 id="quote">{{ quote_text }}</h2>
         </div>
+     
+        <div>
+            <button id="like-btn" onclick="submitFeedback('like')">👍 Like</button>
+           
+            <button id="dislike-btn" onclick="submitFeedback('dislike')">👎 Dislike</button>
+        </div>
+
+
+        <h2>A playlist for you:</h2>
+        <h3>www.playlist.com</h3>
     {% endif %}
+   
+
+
+    <script>
+        // Function for getting a new quote after a like/dislike
+        function submitFeedback(action) {
+            fetch('/new-quote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('quote').textContent = data.new_quote;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>

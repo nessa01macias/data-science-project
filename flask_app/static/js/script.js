@@ -1,11 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log("DOM fully loaded and parsed");
 
     const form = document.querySelector('form');
 
-    form.addEventListener('submit', function(event) {
+    form.addEventListener('submit', function (event) {
         console.log("Form submission event triggered");
-        
+
         const reviewTextarea = document.querySelector('textarea[name="Review"]');
         const reviewText = reviewTextarea.value.trim();
 
@@ -15,3 +15,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+

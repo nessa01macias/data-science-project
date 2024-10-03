@@ -6,6 +6,9 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import random
+import matplotlib.pyplot as plt
+import io
+import base64
 
 
 
@@ -58,6 +61,27 @@ quote_mapping = {
     "disgusted": ["Sometimes life stinks.", "Not everything in life is appealing."],
     "neutral": ["Life is what it is.", "Sometimes the best thing is to just be."]
 }
+#Define a mapping for playlists
+song_mapping = {
+    "happy": "https://open.spotify.com/playlist/7INcD4lmarWTQiDVodjVt4",
+    "sad": "https://open.spotify.com/playlist/5iTgdtVp3FgHfFHFqkyss2",
+    "angry": "https://open.spotify.com/playlist/0a4Hr64HWlxekayZ8wnWqx",
+    "surprised": "https://open.spotify.com/playlist/6cuwjdJXzkS12E3GoAVHdu",
+    "fearful": "https://open.spotify.com/playlist/405PXg1fJunIlSo75L78Kb",
+    "disgusted": "https://open.spotify.com/playlist/1MPXG4at633jUvtw7lLiOG",
+    "neutral": "https://open.spotify.com/playlist/6C4VTR3wHa8rQLV72RMG1f"
+}
+
+
+stat_mapping = {
+    "happy": 0,
+    "sad": 0,
+    "angry": 0,
+    "surprised": 0,
+    "fearful": 0,
+    "disgusted": 0,
+    "neutral": 0
+}
 
 
 last_predicted_emotion = None
@@ -99,7 +123,10 @@ def predict():
         prediction = gnb_from_pickle.predict(review_vectorized)
         # Step 4: Map the predicted class label to the corresponding emotion
         predicted_emotion = emotion_mapping[prediction[0]]
+        #predicted_emotion = random.choice(list(emotion_mapping.values()))
         quote = random.choice(quote_mapping[predicted_emotion])
+        song = song_mapping[predicted_emotion]
+        stat_mapping[predicted_emotion] += 1
     except Exception as e:
         predicted_emotion = "Error in prediction: " + str(e)
 
@@ -108,12 +135,32 @@ def predict():
     current_quote = quote
    
     # Render the result in the HTML template
-    return render_template("index1.html", prediction_text="The predicted emotion is: {}".format(predicted_emotion), quote_text = quote)
+    return render_template("index1.html", prediction_text="The predicted emotion is: {}".format(predicted_emotion), quote_text = quote, song_text = song)
 
 
 @app.route('/statistics')
 def stats():
-    return render_template('stats.html')
+    filtered_data = {emotion: count for emotion, count in stat_mapping.items() if count > 0}
+    if not filtered_data:
+        return render_template('stats.html', message="No data available")
+   
+    labels = list(filtered_data.keys())
+    amounts = list(filtered_data.values())
+    colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99','#c2c2f0','#ffb3e6','#ff6666']
+
+
+    fig, ax = plt.subplots()
+    ax.pie(amounts, labels=labels, colors=colors, shadow=True)
+    ax.axis('equal')  
+
+
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    chart_url = base64.b64encode(img.getvalue()).decode('utf-8')
+
+
+    return render_template('stats.html', chart_url=chart_url)
 
 
 @app.route('/new-quote', methods=['POST'])

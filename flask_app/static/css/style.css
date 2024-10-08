@@ -1,107 +1,112 @@
 /* static/css/style.css */
 
-
 body {
-    font-family: Arial, sans-serif;
-    background-color: #3dc7a9;
-    margin: 0;
-    padding: 0;
-    text-align: center;
+  font-family: Arial, sans-serif;
+  background-color: #3dc7a9;
+  margin: 0;
+  padding: 0;
+  text-align: center;
 }
-
-
-
-
-
 
 h1 {
-    color: #333;
+  color: #333;
 }
-
-
-
 
 form {
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 50%;
-    max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 50%;
+  max-width: 600px;
 }
-
-
-
 
 textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
-
-
-
 
 input[type="submit"] {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
 }
-
-
-
 
 input[type="submit"]:hover {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
-
-
-
 
 h2 {
-    color: #007bff;
+  color: #007bff;
 }
-
 
 .quote-section {
-    margin-top: 30px;
-    background-color: #d1c662;
-    padding: 20px;
-    border-radius: 10px;
-    font-style: italic;
-    color: #555;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    max-width: 600px;
-    margin: 0 auto;
+  margin-top: 30px;
+  background-color: #d1c662;
+  padding: 20px;
+  border-radius: 10px;
+  font-style: italic;
+  color: #555;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  max-width: 600px;
+  margin: 0 auto;
 }
-
 
 button {
-    background-color: #f8f8f8;
-    border: 2px solid transparent;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s, border-color 0.3s;
-    margin: 10px;
+  background-color: #f8f8f8;
+  border: 2px solid transparent;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, border-color 0.3s;
+  margin: 10px;
 }
-
 
 button:hover {
-    background-color: #e0e0e0; /* Slightly darker gray on hover */
-    border-color: #007bff; /* Border turns blue on hover */
+  background-color: #e0e0e0; /* Slightly darker gray on hover */
+  border-color: #007bff; /* Border turns blue on hover */
 }
-
 
 button:active {
-    background-color: #ccc; /* Darker gray when clicked */
-    transform: scale(0.98); /* Slightly shrink the button on click */
+  background-color: #ccc; /* Darker gray when clicked */
+  transform: scale(0.98); /* Slightly shrink the button on click */
 }
 
+nav a {
+  color: white;
+  margin: 0 10px;
+  text-decoration: none;
+}
+
+.result-container {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.result-box {
+  width: 30%;
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.result-box h2 {
+  color: #4a90e2;
+  margin-bottom: 15px;
+}
+
+.result-box p {
+  font-size: 14px;
+  line-height: 1.6;
+}

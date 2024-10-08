@@ -22,11 +22,43 @@
 
     <h1>Sentiment Analysis of Reviews</h1>
     <p>Write anything you want, and we will tell you how you feel!</p>
+
+    <!-- Single form for both review text and adjustment choice -->
     <form action="/predict" method="post">
       <label for="review">Enter a Review:</label><br /><br />
-      <textarea name="Review" rows="4" cols="50"></textarea><br /><br />
+      <textarea name="Review" rows="4" cols="50">{{ review if review }}</textarea><br /><br />
+
+      <!-- Dropdown for text adjustment -->
+      <label for="adjustment">How would you like to adjust the text?</label>
+      <select id="adjustment" name="adjustment">
+        <option value="" disabled selected>Select adjustment</option>
+        <option value="neutral">Neutral</option>
+        <option value="positive">More Positive</option>
+        <option value="constructive">More Constructive</option>
+        <option value="none">Leave it as is</option>
+      </select>
+      <br /><br />
+
       <input type="submit" value="Submit" />
     </form>
+
+    <!-- Display modified, original, and example texts side by side in boxes -->
+    {% if modified_text %}
+      <div class="result-container">
+        <div class="result-box">
+          <h2>Suggestions</h2>
+          <p>{{ modified_text }}</p>
+        </div>
+        <div class="result-box">
+          <h2>Example</h2>
+          <p>{{ generated_example }}</p>
+        </div>
+        <div class="result-box">
+          <h2>Original Text</h2>
+          <p>{{ original_text }}</p>
+        </div>
+      </div>
+    {% endif %}
 
     {% if prediction_text %}
     <h2>{{ prediction_text }}</h2>
@@ -35,27 +67,14 @@
       <h2 id="quote">{{ quote_text }}</h2>
     </div>
 
-    <!-- Thumbs Up/Down Buttons -->
-    <div>
-      <button id="like-btn" onclick="submitFeedback('like')">👍 Like</button>
-      <button id="dislike-btn" onclick="submitFeedback('dislike')">
-        👎 Dislike
-      </button>
-    </div>
-
     <h2>A playlist for you:</h2>
-    <a href="{{ song_text }}" target="_blank"
-      >Listen to the playlist on Spotify</a
-    >
+    <a href="{{ song_text }}" target="_blank">Listen to the playlist on Spotify</a>
 
-    <!-- Hidden field to store the quote ID -->
-    <input
-      type="hidden"
-      id="last_predicted_emotion_quote_id"
-      value="{{ last_predicted_emotion_quote_id }}"
-    />
-
+    <input type="hidden" id="last_predicted_emotion_quote_id" value="{{ last_predicted_emotion_quote_id }}" />
     {% endif %}
+  </body>
+</html>
+
 
     <script>
       // Pass the predicted emotion and quote_id from Flask to JavaScript

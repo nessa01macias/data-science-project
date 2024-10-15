@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emotion Analysis & Quote</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <script
+      src="{{ url_for('static', filename='js/script.js') }}"
+      defer
+    ></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav>
+      <a href="{{ url_for('page_of_quote') }}">Emotion & Quote</a> |
+      <a href="{{ url_for('page_of_rewrite') }}">Rewrite Assistance</a>
+    </nav>
+
+    <div class="main-content">
+      <!-- Emotion Analysis and Quote Section -->
+      <header>
+        <h1>Emotion Analysis & Quote</h1>
+        <p>Enter text, analyze your emotion, and get a motivational quote!</p>
+      </header>
+
+      <section class="quote-section">
+        <form action="/pageOfQuote" method="post" id="analyze-form">
+          <textarea
+            name="review"
+            rows="4"
+            cols="50"
+            placeholder="Enter your text here..."
+            required
+          >
+{{ review if review }}</textarea
+          >
+          <br /><br />
+          <input type="submit" value="Analyze Emotion" id="submit-btn" />
+        </form>
+        <div class="spinner" id="spinner"></div>
+        <!-- Spinner -->
+
+        {% if prediction_text %}
+        <div class="result-container">
+          <!-- Quote Suggestion with Thumbs Up/Down -->
+          <div class="quote-container">
+            <h3>Quote:</h3>
+            <h2 id="quote">{{ quote_text }}</h2>
+
+            <!-- Thumbs up/down buttons -->
+            <div class="like-dislike-container">
+              <button id="like-btn" onclick="submitFeedback('like')">
+                👍 Like
+              </button>
+              <button id="dislike-btn" onclick="submitFeedback('dislike')">
+                👎 Dislike
+              </button>
+            </div>
+          </div>
+
+          <!-- Image and Playlist Recommendation -->
+          <div class="media-section">
+            {% if image_url %}
+            <img src="{{ image_url }}" alt="Emotion-related image" />
+            {% else %}
+            <p>No image available.</p>
+            {% endif %}
+
+            <!-- Spotify Playlist Box -->
+            <div class="spotify-playlist">
+              <a href="{{ song_text }}" target="_blank">
+                <i class="fab fa-spotify"></i> We would like to recommend you a
+                song that suits your mood!
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden Fields to Store Quote ID and Emotion -->
+        <input
+          type="hidden"
+          id="last_predicted_emotion_quote_id"
+          value="{{ last_predicted_emotion_quote_id }}"
+        />
+        <input
+          type="hidden"
+          id="predicted_emotion"
+          value="{{ predicted_emotion }}"
+        />
+        {% endif %}
+      </section>
+    </div>
+
+    <footer>
+      <p>&copy; Meleny Nikol Sabina.</p>
+    </footer>
+
+    <script>
+      // JavaScript to show spinner and submit the form manually
+      document
+        .getElementById("analyze-form")
+        .addEventListener("submit", function (event) {
+          // Prevent default form submission
+          event.preventDefault();
+
+          // Hide the submit button
+          document.getElementById("submit-btn").style.display = "none";
+
+          // Show the spinner
+          document.getElementById("spinner").style.display = "block";
+
+          // Submit the form manually after showing spinner
+          this.submit();
+        });
+
+      // JavaScript to handle feedback submission (like/dislike)
+
+      var last_predicted_emotion_quote_id = document.getElementById(
+        "last_predicted_emotion_quote_id"
+      ).value;
+      var last_predicted_emotion =
+        document.getElementById("predicted_emotion").value;
+
+      function submitFeedback(action) {
+        fetch("/new-quote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: action,
+            quote_id: last_predicted_emotion_quote_id,
+            emotion: last_predicted_emotion,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.new_quote) {
+              document.getElementById("quote").textContent = data.new_quote;
+            } else {
+              alert("No new quote found");
+            }
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+    </script>
+  </body>
+</html>

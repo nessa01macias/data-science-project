@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rewrite Assistance - Sentiment Analysis</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <script
+      src="{{ url_for('static', filename='js/script.js') }}"
+      defer
+    ></script>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav>
+      <a href="{{ url_for('page_of_quote') }}">Emotion & Quote</a> |
+      <a href="{{ url_for('page_of_rewrite') }}">Rewrite Assistance</a>
+    </nav>
+
+    <div class="main-content">
+      <!-- Rewrite Section -->
+      <header>
+        <h1>Rewrite Your Text</h1>
+        <p>
+          Select a tone to rewrite your text and see suggested improvements.
+        </p>
+      </header>
+
+      <section class="rewrite-section">
+        <form action="/pageOfRewrite" method="post" id="rewrite-form">
+          <textarea
+            name="review"
+            rows="4"
+            cols="50"
+            placeholder="Enter your text here..."
+            required
+          >
+{{ review if review }}</textarea
+          >
+          <br /><br />
+          <label for="adjustment">Select a tone to rewrite your text:</label>
+          <select id="adjustment" name="adjustment" required>
+            <option value="" disabled selected>Select adjustment</option>
+            <option value="neutral">Neutral</option>
+            <option value="positive">More Positive</option>
+            <option value="constructive">More Constructive</option>
+            <option value="none">Leave it as is</option>
+          </select>
+          <br /><br />
+          <input type="submit" value="Rewrite" id="submit-rewrite-btn" />
+        </form>
+        <div class="spinner" id="spinner-rewrite"></div>
+        <!-- Spinner -->
+
+        {% if original_text %}
+        <div class="rewrite-results">
+          <div class="side-by-side-container">
+            <!-- Original Text -->
+            <div class="original-text text-box">
+              <h2>Original Text:</h2>
+              <p>{{ original_text }}</p>
+            </div>
+
+            <!-- Suggested Changes -->
+            <div class="suggested-changes text-box">
+              <h2>Suggested Changes:</h2>
+              <div>{{ modified_text | safe }}</div>
+              <!-- Allows formatted content -->
+            </div>
+
+            <!-- Generated Example -->
+            <div class="generated-example text-box">
+              <h2>Generated Example:</h2>
+              <p>{{ generated_example }}</p>
+            </div>
+          </div>
+        </div>
+        {% endif %} {% if error_message %}
+        <p class="error">Error: {{ error_message }}</p>
+        {% endif %}
+      </section>
+    </div>
+    <footer>
+      <p>&copy; Meleny Nikol Sabina.</p>
+    </footer>
+
+    <script>
+      // JavaScript for the rewrite form
+      document
+        .getElementById("rewrite-form")
+        .addEventListener("submit", function () {
+          // Hide the submit button
+          document.getElementById("submit-rewrite-btn").style.display = "none";
+
+          // Show the spinner
+          document.getElementById("spinner-rewrite").style.display = "block";
+        });
+    </script>
+  </body>
+</html>

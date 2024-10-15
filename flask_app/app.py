@@ -1,34 +1,14 @@
+from flask import Flask, request, render_template, jsonify, url_for
 from db_interaction import suggest_quote_by_category, update_quote_score  # Import from the database script
-from llm_query import query_llm  
-from flask import Flask, request, render_template, jsonify
-from text_preprocessing import preprocess
-import joblib  # For loading the vectorizer
+from llm_query import query_llm
+from prediction import emotion_prediction, data_preprocess
+from flask import redirect, url_for
 import matplotlib.pyplot as plt
 import io
 import base64
-from dotenv import load_dotenv
-import os 
-from huggingface_hub import login
-
-load_dotenv()
-
-vectorizer_path = os.getenv('VECTORIZER_PATH')
-# login(token=os.getenv('HUGGINGFACE_TOKEN'))
-
 
 # Initialize Flask app
 app = Flask(__name__)
-
-# Load the Naive Bayes model from the pickle file
-try:
-    with open('model/rf_model.joblib', 'rb') as file:
-        rf_from_pickle = joblib.load(file)
-    print("Naive Bayes model loaded successfully.")
-except FileNotFoundError:
-    print("Model file not found. Please check the path.")
-except Exception as e:
-    print(f"An error occurred while loading the model: {e}")
-
 
 # Define a mapping of predicted class labels to emotions
 emotion_mapping = {
@@ -62,94 +42,158 @@ stat_mapping = {
     "neutral": 0
 }
 
+# New emotion mapping connecting original to new emotions
+new_emotion_mapping = {
+    "joy": "happy",
+    "sadness": "sad",
+    "shame": "sad",
+    "guilt": "sad",
+    "anger": "angry",
+    "fear": "fearful",
+    "disgusted": "disgusted",  # Same as original
+    "neutral": "neutral",  # Same as original
+}
+
 last_predicted_emotion = None
 current_quote = None
 
 # Homepage route
 @app.route("/")
 def home():
-    return render_template("index1.html")
+    return redirect(url_for('page_of_quote'))
 
-
-@app.route('/predict', methods=["POST"])
-def predict():
+# Page of Quote
+@app.route("/pageOfQuote", methods=["GET", "POST"])
+def page_of_quote():
     global last_predicted_emotion, current_quote
-    
-    # Get the review text and adjustment choice from the form input
-    input = request.form['Review']
-    print("Input text:", input)
-    review = preprocess(input)  # Get the review text from the form input
-    print("Processed Review input text:", review)
-    adjustment = request.form.get('adjustment', 'none')  # Default to 'none' if not selected
 
-    try:
-        # Step 3: Predict the emotion
-        prediction = rf_from_pickle.predict([review])
-        print(prediction)
-        # Step 4: Map the predicted class label to the corresponding emotion
-        predicted_emotion = emotion_mapping[prediction[0]]
-        print("The predicted emotion is:", predicted_emotion)
+    # Mapping of emotions to corresponding image URLs
+    image_mapping = {
+        "angry": url_for('static', filename="images/angry.png"),
+        "disgusted": url_for('static', filename= "images/disgusted.jpg"),
+        "fearful":url_for('static', filename= "images/fearful.png"),
+        "happy": url_for('static', filename="images/happy.jpg"),
+        "neutral": url_for('static', filename="images/neutral.png"),
+        "sad": url_for('static', filename="images/sad.jpg")
+    }
 
-        # Fetch a quote based on the predicted emotion
-        quote_data = suggest_quote_by_category(predicted_emotion)
-        if quote_data:
-            quote = quote_data['quote']
-            author = quote_data['author']
-            last_predicted_emotion_quote_id = quote_data['id']
-            stat_mapping[predicted_emotion] += 1
-        else:
-            quote = "No quote available."
-            author = ""
-            last_predicted_emotion_quote_id = None
+    if request.method == "POST":
+        input_text = request.form.get('review', '')
+        adjustment = request.form.get('adjustment', 'none')  # Fetch adjustment choice
+        print(f"Review: {input_text}, Adjustment: {adjustment}")
 
-        song = song_mapping.get(predicted_emotion, "")
+        # Redirect to /pageOfRewrite if an adjustment is selected
+        if adjustment != 'none':
+            return render_template(
+                "redirect_to_rewrite.html",
+                review=input_text,
+                adjustment=adjustment
+            )
 
-        # Handle text adjustment only if the user selected something other than 'none'
-        suggestion_text = None
-        generated_example = None
-        if adjustment != 'none' and len(review) > 5:  # Ensure the review text is long enough
-            # Generate Suggestion
-            llm_prompt_suggestion = f"Make the following text {adjustment}. Suggest specific changes: {review}"
-            print(f"LLM Suggestion Prompt: {llm_prompt_suggestion}")
-            suggestion_text = query_llm(llm_prompt_suggestion)
-            
-            # Generate Example
-            llm_prompt_example = f"Make the following text {adjustment}. Create a new text based on this one but with the target emotion: {review}"
-            print(f"LLM Example Prompt: {llm_prompt_example}")
-            generated_example = query_llm(llm_prompt_example)
-        else:
-            print("Skipping LLM call due to short or empty review.")
+        try:
+            # Preprocess the input data
+            processed_input = data_preprocess(input_text)
 
-        # Render the appropriate template with suggestions, examples, and original
-        return render_template(
-            "index1.html",
-            prediction_text=f"The predicted emotion is: {predicted_emotion}",
-            original_text=review if adjustment != 'none' else None,
-            modified_text=suggestion_text,
-            generated_example=generated_example,
-            adjustment=adjustment,
-            quote_text=quote,
-            song_text=song,
-            last_predicted_emotion_quote_id=last_predicted_emotion_quote_id,
-            review=review,  # Keep review in textarea
-            predicted_emotion=predicted_emotion  # Pass this variable to the frontend
-        )
+            # Predict the emotion
+            _predicted_emotion = emotion_prediction(input_text)
+            predicted_emotion = new_emotion_mapping.get(_predicted_emotion)
 
-    except Exception as e:
-        predicted_emotion = f"Error in prediction: {str(e)}"
-        quote = "No quote available."
-        song = ""
-        last_predicted_emotion_quote_id = None
+            # Fetch a quote and song based on the predicted emotion
+            quote_data = suggest_quote_by_category(predicted_emotion)
+            if quote_data:
+                quote = quote_data['quote']
+                author = quote_data['author']
+                last_predicted_emotion_quote_id = quote_data['id']
+                stat_mapping[predicted_emotion] += 1  # Increment the stat for the predicted emotion
+            else:
+                quote = "No quote available."
+                author = ""
+                last_predicted_emotion_quote_id = None
 
-    return render_template(
-        "index1.html",
-        prediction_text=f"The predicted emotion is: {predicted_emotion}",
-        quote_text=quote,
-        song_text=song,
-        last_predicted_emotion_quote_id=last_predicted_emotion_quote_id,
-        review=review,  # Keep review in textarea even on error
-        predicted_emotion=predicted_emotion  # Pass this variable here as well
-    )
+            # Get the song corresponding to the predicted emotion
+            song = song_mapping.get(predicted_emotion, "")
+
+            # Select the image URL based on the predicted emotion
+            image_url = image_mapping.get(predicted_emotion, url_for('static', filename="images/1.png"))  # Fallback image
+
+            # Render the template with the prediction results
+            return render_template(
+                "pageOfQuote.html",
+                prediction_text=f"The predicted emotion is {predicted_emotion}",
+                quote_text=quote,
+                song_text=song,
+                last_predicted_emotion_quote_id=last_predicted_emotion_quote_id,
+                review=input_text,
+                predicted_emotion=predicted_emotion,
+                image_url=image_url  # Pass the selected image URL to the template
+            )
+
+        except Exception as e:
+            # Handle errors during processing and provide feedback
+            return render_template(
+                "pageOfQuote.html",
+                prediction_text=f"Error in prediction: {str(e)}",
+                review=input_text,
+                quote_text="No quote available.",
+                song_text="",
+                image_url="https://example.com/default-image.jpg"  # Default image in case of error
+            )
+
+    # Render the page for GET requests
+    return render_template("pageOfQuote.html")
+
+
+# Page of Rewrite
+@app.route("/pageOfRewrite", methods=["GET", "POST"])
+def page_of_rewrite():
+    if request.method == "POST":
+        input_text = request.form.get('review', '')
+        adjustment = request.form.get('adjustment', 'none')  # Fetch adjustment choice
+        print(f"Review: {input_text}, Adjustment: {adjustment}")
+
+        try:
+            processed_input = data_preprocess(input_text)
+
+            # Generate the suggestion (adjusted text)
+            suggestion_text = None
+            generated_example = None
+
+            if adjustment != 'none' and len(input_text) > 5:  # Ensure enough input text to adjust
+                # Generate the suggested version based on the adjustment type
+                llm_prompt_suggestion = f"""
+                    Make the following text {adjustment}.
+                    1. Provide a brief explanation of how to make the text more neutral or suitable.
+                    2. Give clear, actionable points in bullet form, such as specific words or phrases to change, and why.
+                    3. Offer at least two revision options (e.g., direct, polite, and specific) formatted clearly.
+                    4. Give 2-3 specific recommendations for improvement in bullet-point format.
+                    Original text: {processed_input}
+                    """
+                suggestion_text = query_llm(llm_prompt_suggestion)
+                print(f"Suggestion: {suggestion_text}")
+
+                # Generate a new example using the adjustment as a basis
+                llm_prompt_example = f"Make the following text {adjustment}. Create a new text based on this one but with the target emotion or style: {input_text}"
+                generated_example = query_llm(llm_prompt_example)
+
+            return render_template(
+                "pageOfRewrite.html",
+                original_text=input_text if adjustment != 'none' else None,
+                modified_text=suggestion_text,
+                generated_example=generated_example,
+                adjustment=adjustment,
+                review=input_text  # Keep the review text in the form for reuse
+            )
+
+        except Exception as e:
+            return render_template(
+                "pageOfRewrite.html",
+                error_message=f"Error in processing: {str(e)}",
+                review=input_text  # Keep the input text even on error
+            )
+
+    # Render the page for GET requests (without suggestions, just the form)
+    return render_template("pageOfRewrite.html")
+
 
 
 # Statistics route
@@ -179,53 +223,25 @@ def new_quote():
     global current_quote
     data = request.get_json()
     action = data.get('action')
-    quote_id = data.get('quote_id')  # Get the quote_id from the request
-    emotion = data.get('emotion')  # Get the emotion from the frontend
+    quote_id = data.get('quote_id')
+    emotion = data.get('emotion')
 
-    print(f"Action: {action}, Quote ID: {quote_id}, Emotion: {emotion}")
-
-    # If the action is 'like' or 'dislike', update the score accordingly
     if quote_id:
         if action == 'like':
-            update_quote_score(quote_id, increment=1)  # Increment score
+            update_quote_score(quote_id, increment=1)
         elif action == 'dislike':
-            update_quote_score(quote_id, increment=-1)  # Decrement score
+            update_quote_score(quote_id, increment=-1)
 
-    # Fetch a new quote from the database for the emotion passed
-    if emotion:  # Ensure emotion is not empty
+    if emotion:
         quote_data = suggest_quote_by_category(emotion)
         if quote_data and quote_data['quote'] != current_quote:
             current_quote = quote_data['quote']
-            return jsonify({
-                'new_quote': quote_data['quote'],
-                'author': quote_data['author']
-            })
+            return jsonify({'new_quote': quote_data['quote'], 'author': quote_data['author']})
         else:
-            return jsonify({'new_quote': "No new quote found."})
-    else:
-        return jsonify({'error': 'No emotion provided.'})
+            return jsonify({'new_quote': "No new quote available."})
+
+    return jsonify({'new_quote': "No emotion specified."})
 
 
-# Route to handle likes and dislikes
-@app.route('/update-score', methods=['POST'])
-def update_score():
-    global current_quote_id
-    data = request.get_json()
-    action = data.get('action')
-
-    if current_quote_id is not None:
-        # If the action is 'like', increment the score, otherwise decrement
-        increment = 1 if action == 'like' else -1
-        updated_quote = update_quote_score(current_quote_id, increment)
-
-        return jsonify({
-            'quote': updated_quote.quote,
-            'author': updated_quote.author,
-            'new_score': updated_quote.score
-        })
-    return jsonify({'error': 'No quote available to update score.'}), 400
-
-
-# Run the app
 if __name__ == "__main__":
     app.run(debug=True)

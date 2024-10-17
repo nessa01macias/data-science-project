@@ -64,18 +64,18 @@
               <p>{{ original_text }}</p>
             </div>
 
-            <!-- Suggested Changes -->
-            <div class="suggested-changes text-box">
-              <h2>Suggested Changes:</h2>
-              <div>{{ modified_text | safe }}</div>
-              <!-- Allows formatted content -->
-            </div>
-
             <!-- Generated Example -->
             <div class="generated-example text-box">
               <h2>Generated Example:</h2>
               <p>{{ generated_example }}</p>
             </div>
+
+            <!-- Suggested Changes -->
+            <div class="suggested-changes text-box">
+              <h2>Suggested Changes:</h2>
+              <div>{{ modified_text | safe }}</div>
+            </div>
+            
           </div>
         </div>
         {% endif %} {% if error_message %}

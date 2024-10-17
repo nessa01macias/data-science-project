@@ -161,14 +161,16 @@ def page_of_rewrite():
             if adjustment != 'none' and len(input_text) > 5:  # Ensure enough input text to adjust
                 # Generate the suggested version based on the adjustment type
                 llm_prompt_suggestion = f"""
-                    Make the following text {adjustment}.
-                    1. Provide a brief explanation of how to make the text more neutral or suitable.
-                    2. Give clear, actionable points in bullet form, such as specific words or phrases to change, and why.
-                    3. Offer at least two revision options (e.g., direct, polite, and specific) formatted clearly.
-                    4. Give 2-3 specific recommendations for improvement in bullet-point format.
-                    Original text: {processed_input}
+                Return your response in HTML format.
+
+                Please make the following text {adjustment}. Keep the response concise and focused on specific, actionable feedback. Avoid offering revision examples or rewriting the text. 
+                Provide 2-3 short, actionable suggestions for improvement, focusing on word choice and tone adjustments.
+                
+                Original text: {processed_input}
                     """
                 suggestion_text = query_llm(llm_prompt_suggestion)
+                suggestion_text = suggestion_text.replace("```html", "").replace("```", "").strip()
+
                 print(f"Suggestion: {suggestion_text}")
 
                 # Generate a new example using the adjustment as a basis
@@ -194,29 +196,6 @@ def page_of_rewrite():
     # Render the page for GET requests (without suggestions, just the form)
     return render_template("pageOfRewrite.html")
 
-
-
-# Statistics route
-@app.route('/statistics')
-def stats():
-    filtered_data = {emotion: count for emotion, count in stat_mapping.items() if count > 0}
-    if not filtered_data:
-        return render_template('stats.html', message="No data available")
-
-    labels = list(filtered_data.keys())
-    amounts = list(filtered_data.values())
-    colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99','#c2c2f0','#ffb3e6','#ff6666']
-
-    fig, ax = plt.subplots()
-    ax.pie(amounts, labels=labels, colors=colors, shadow=True)
-    ax.axis('equal')
-
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    chart_url = base64.b64encode(img.getvalue()).decode('utf-8')
-
-    return render_template('stats.html', chart_url=chart_url)
 
 @app.route('/new-quote', methods=['POST'])
 def new_quote():

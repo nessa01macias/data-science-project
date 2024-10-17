@@ -16,13 +16,46 @@ h2,
 h3 {
   color: #16426c;
   font-weight: bold;
-  margin: 20px 0;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  font-size: 18px; /* Smaller font size for subheadings */
 }
 
 p {
-  margin: 20px 0;
+  margin-bottom: 10px;
+  font-size: 14px;
   line-height: 1.6;
-  color: #555;
+  color: #333;
+}
+
+ul,
+ol {
+  margin-left: 20px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+li {
+  margin-bottom: 5px; /* Space between list items */
+}
+
+strong {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* Code Blocks or Preformatted Text */
+pre {
+  background-color: #f4f4f4;
+  border-left: 4px solid #16426c;
+  padding: 10px;
+  overflow-x: auto; /* Enable horizontal scroll for long code */
+  white-space: pre-wrap; /* Line breaks preserved */
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 /* Navbar Styles */
@@ -133,8 +166,44 @@ select:focus {
   border-radius: 5px;
   margin-bottom: 20px;
   border: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  max-width: 100%; /* Ensures boxes don't overflow */
+  min-height: 300px; /* Ensures minimum height */
   overflow-y: auto; /* Scroll if content overflows */
   white-space: pre-wrap; /* Ensures whitespace and newlines are respected */
+  box-sizing: border-box;
+  max-width: 33%; /* Ensure equal width for all text boxes */
+  overflow-wrap: break-word; /* Handle long words by wrapping */
+}
+
+/* Ensure the rendered HTML inside the modified text looks clean */
+.suggested-changes div {
+  white-space: normal; /* Remove extra spaces */
+  line-height: 1.6; /* Improve readability */
+  font-size: 16px;
+}
+
+/* Ensure headings and other HTML inside the suggested changes is well-styled */
+.suggested-changes h2,
+.suggested-changes h3 {
+  font-weight: bold;
+  margin-top: 15px;
+  color: #16426c;
+}
+
+.suggested-changes ul {
+  padding-left: 20px; /* Proper spacing for bullet points */
+}
+
+.suggested-changes li {
+  margin-bottom: 10px;
+}
+
+.suggested-changes p {
+  margin-bottom: 10px;
 }
 
 textarea:focus,
@@ -189,13 +258,6 @@ body {
   height: 100%; /* Ensure the page height is at least 100% of the viewport */
   margin: 0; /* Remove margin */
   padding: 0; /* Remove padding */
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 100vh; /* Full viewport height */
 }
 
 .main-content {
@@ -328,13 +390,15 @@ select {
   box-sizing: border-box;
 }
 
-/* Side-by-side layout for results */
+/* Flexbox for the side-by-side layout */
 .side-by-side-container {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 20px;
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
+
 .side-by-side-container > div {
   flex: 1;
   padding: 15px;
@@ -347,6 +411,7 @@ select {
   flex-direction: column;
   justify-content: flex-start;
 }
+
 /* Media Queries for Responsive Design */
 @media (max-width: 768px) {
   .container,

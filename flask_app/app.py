@@ -1,11 +1,22 @@
 from flask import Flask, request, render_template, jsonify, url_for
-from db_interaction import suggest_quote_by_category, update_quote_score  # Import from the database script
+from db_interaction import suggest_quote_by_category, update_quote_score
+from flask_httpauth import HTTPBasicAuth
 from llm_query import query_llm
 from prediction import emotion_prediction, data_preprocess
 from flask import redirect, url_for
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
 import io
 import base64
+import os
+
+# Load .env file
+load_dotenv()
+
+# Basic Auth setup
+auth = HTTPBasicAuth()
+USERNAME = os.getenv("BASIC_AUTH_USERNAME", "teacher")  # Default to 'teacher' if not in .env
+PASSWORD = os.getenv("BASIC_AUTH_PASSWORD", "password")  # Default to 'password' if not in .env
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -57,13 +68,20 @@ new_emotion_mapping = {
 last_predicted_emotion = None
 current_quote = None
 
+@auth.verify_password
+def verify_password(username, password):
+    if username == USERNAME and password == PASSWORD:
+        return username
+
 # Homepage route
 @app.route("/")
+@auth.login_required
 def home():
     return redirect(url_for('page_of_quote'))
 
 # Page of Quote
 @app.route("/pageOfQuote", methods=["GET", "POST"])
+@auth.login_required
 def page_of_quote():
     global last_predicted_emotion, current_quote
 
@@ -145,6 +163,7 @@ def page_of_quote():
 
 # Page of Rewrite
 @app.route("/pageOfRewrite", methods=["GET", "POST"])
+@auth.login_required
 def page_of_rewrite():
     if request.method == "POST":
         input_text = request.form.get('review', '')
@@ -198,6 +217,7 @@ def page_of_rewrite():
 
 
 @app.route('/new-quote', methods=['POST'])
+@auth.login_required
 def new_quote():
     global current_quote
     data = request.get_json()
